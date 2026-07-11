@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Optima Game</title>
+    <title>Optima Online Game</title>
     <style>
-        body {
-            margin: 0;
-            background-color: #222;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: white;
-            font-family: Arial, sans-serif;
+        body { 
+            margin: 0; 
+            background-color: #222; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            color: white; 
+            font-family: Arial, sans-serif; 
+            overflow: hidden;
         }
-        canvas {
-            border: 4px solid #fff;
-            background-color: #111;
+        canvas { 
+            border: 4px solid #fff; 
+            background-color: #111; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -25,56 +27,103 @@
 
     <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-    <script>
+    <!-- مكتبات Firebase أونلاين -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        // إعدادات الفايربيس مع الرابط ديالك الخاص بـ Europe
+        const firebaseConfig = {
+            databaseURL: "https://optima-game-default-rtdb.europe-west1.firebasedatabase.app/"
+        };
+
+        // تفعيل Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // إنشاء معرف فريد وعشوائي لكل لاعب كيدخل
+        const playerId = "player_" + Math.floor(Math.random() * 100000);
+        const playerRef = ref(db, `players/${playerId}`);
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // إحداثيات اللاعب (المربع)
-        let player = {
-            x: 400,
-            y: 300,
-            size: 40,
-            speed: 5
+        // إعدادات اللاعب ديالي محلياً (عطيناه لون عشوائي باش يتميز)
+        const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+        let myPlayer = { 
+            x: Math.floor(Math.random() * 700) + 50, 
+            y: Math.floor(Math.random() * 500) + 50, 
+            size: 30, 
+            color: randomColor 
         };
-
-        // تتبع الأزرار المضغوطة
+        
+        let allPlayers = {};
         let keys = {};
 
-        window.addEventListener('keydown', (e) => keys[e.key] = true);
-        window.addEventListener('keyup', (e) => keys[e.key] = false);
+        // مراقبة أزرار الكيبورد (تحرك بـ الأسهم أو WASD)
+        window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
+        window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
 
-        // تحديث منطق اللعبة (الحركة)
+        // مسح اللاعب أوتوماتيكياً من السيرفر يلا سد الصفحة أو قطع الكونيكسيون
+        onDisconnect(playerRef).remove();
+
+        // استقبال تحركات كل اللاعبين الأونلاين في الوقت الفعلي
+        const playersRef = ref(db, 'players');
+        onValue(playersRef, (snapshot) => {
+            allPlayers = snapshot.val() || {};
+        });
+
         function update() {
-            if (keys['ArrowUp'] || keys['w']) player.y -= player.speed;
-            if (keys['ArrowDown'] || keys['s']) player.y += player.speed;
-            if (keys['ArrowLeft'] || keys['a']) player.x -= player.speed;
-            if (keys['ArrowRight'] || keys['d']) player.x += player.speed;
+            let moved = false;
+            
+            if (keys['arrowup'] || keys['w']) { myPlayer.y -= 5; moved = true; }
+            if (keys['arrowdown'] || keys['s']) { myPlayer.y += 5; moved = true; }
+            if (keys['arrowleft'] || keys['a']) { myPlayer.x -= 5; moved = true; }
+            if (keys['arrowright'] || keys['d']) { myPlayer.x += 5; moved = true; }
 
-            // منع اللاعب من الخروج من الشاشة
-            if (player.x < 0) player.x = 0;
-            if (player.y < 0) player.y = 0;
-            if (player.x + player.size > canvas.width) player.x = canvas.width - player.size;
-            if (player.y + player.size > canvas.height) player.y = canvas.height - player.size;
+            // حدود الخريطة (ما يخرجش اللاعب من الكانفاس)
+            if (myPlayer.x < 0) myPlayer.x = 0;
+            if (myPlayer.y < 0) myPlayer.y = 0;
+            if (myPlayer.x + myPlayer.size > canvas.width) myPlayer.x = canvas.width - myPlayer.size;
+            if (myPlayer.y + myPlayer.size > canvas.height) myPlayer.y = canvas.height - myPlayer.size;
+
+            // يصيفط الإحداثيات الجديدة للفايربيس غير يلا تحرك
+            if (moved) {
+                set(playerRef, {
+                    x: myPlayer.x,
+                    y: myPlayer.y,
+                    color: myPlayer.color
+                });
+            }
         }
 
-        // رسم العناصر على الشاشة
         function draw() {
-            // مسح الشاشة في كل إطار
+            // مسح الإطار القديم
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // رسم اللاعب (مربع أحمر كمثال)
-            ctx.fillStyle = '#ff4757';
-            ctx.fillRect(player.x, player.y, player.size, player.size);
+            // رسم جميع اللاعبين المتصلين أونلاين فالسيرفر
+            Object.keys(allPlayers).forEach((id) => {
+                const p = allPlayers[id];
+                ctx.fillStyle = p.color || '#fff';
+                ctx.fillRect(p.x, p.y, myPlayer.size, myPlayer.size);
+                
+                // كتابة نص صغير فوق المربع لتمييز اللاعب ديالك
+                if (id === playerId) {
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '12px Arial';
+                    ctx.fillText("أنت", p.x + 5, p.y - 5);
+                }
+            });
         }
 
-        // حلقة اللعبة المستمرة (Game Loop)
         function gameLoop() {
             update();
             draw();
             requestAnimationFrame(gameLoop);
         }
 
-        // تشغيل اللعبة
+        // تسجيل اللاعب لأول مرة فالسيرفر ملي كيدخل
+        set(playerRef, { x: myPlayer.x, y: myPlayer.y, color: myPlayer.color });
         gameLoop();
     </script>
 </body>
