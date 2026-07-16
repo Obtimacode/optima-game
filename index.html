@@ -2,178 +2,1185 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Optima Code | Project: Void Mind</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MyHouse Cozy Cinema</title>
+    
+    <!-- حماية ضد Clickjacking -->
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script type="text/javascript">
+        if (self === top) {
+            var antiClickjack = document.getElementById("antiClickjack");
+            antiClickjack.parentNode.removeChild(antiClickjack);
+        } else {
+            top.location = self.location;
+        }
+    </script>
+    
+    <!-- PeerJS للمكالمات الصوتية المباشرة -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- مكتبة Lucide للأيقونات العصرية -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- مكتبة SDK الرسمية لبايبال برابط الحساب المباشر الخاص بك -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AeWZjpjao8UB0DNcL_Ahgo-fWMx6nJIEeGnswxdoDfmAU3yFY6PSz5OALcU5PBXKHF37B7iX1p07zO-8&currency=USD"></script>
+
     <style>
-        /* كاع الستايل مجموع هنايا */
         :root {
-            --bg-color: #07070a;
-            --panel-bg: rgba(13, 13, 18, 0.85);
-            --neon-purple: #8b5cf6;
-            --neon-cyan: #06b6d4;
-            --text-color: #e2e8f0;
+            --bg-dark: #05070f;
+            --card-bg: rgba(13, 18, 33, 0.75);
+            --card-border: rgba(255, 255, 255, 0.05);
+            --accent-blue: #0066ff;
+            --accent-hover: #0052cc;
+            --danger-red: #ef4444;
+            --danger-hover: #dc2626;
+            --success-green: #10b981;
+            --text-main: #f3f4f6;
+            --text-muted: #6b7280;
+            --text-secondary: #9ca3af;
         }
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color); color: var(--text-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-x: hidden;
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* خلفية تفاعلية بيكسل خفيفة بالـ CSS */
-        .ambient-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.08), transparent 60%);
-            z-index: -1;
+        body { 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 20px;
+            overflow-y: auto;
+            background-image: radial-gradient(circle at 50% -20%, #111e3b 0%, #05070f 70%);
+            user-select: none; /* منع تحديد النصوص لحماية المحتوى */
         }
 
-        /* الهيدر أو البار الفوقاني */
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 40px; background: rgba(7, 7, 10, 0.9);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            position: sticky; top: 0; z-index: 100;
+        /* حاوية التنبيهات المنبثقة */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
         }
 
-        .logo { font-weight: bold; font-size: 20px; color: var(--neon-cyan); letter-spacing: 1px; }
-
-        /* سيكشن البطل الرئيسي (Hero Section) */
-        .hero {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 100px 20px 60px 20px;
+        .toast {
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .game-title {
-            font-size: 48px; margin: 0; font-weight: 800;
-            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(6, 182, 212, 0.2);
-            animation: float 4s ease-in-out infinite;
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .container { 
+            background: var(--card-bg); 
+            width: 100%; 
+            max-width: 420px; 
+            padding: 35px 28px; 
+            border-radius: 28px; 
+            border: 1px solid var(--card-border);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            text-align: center; 
+            transition: all 0.4s ease;
+            margin: 20px 0;
+        }
+        
+        h1 { 
+            font-size: 22px; 
+            font-weight: 700; 
+            margin-bottom: 8px; 
+            color: var(--text-main); 
+            letter-spacing: -0.5px;
         }
 
-        .tagline { color: #94a3b8; font-size: 16px; margin-top: 15px; max-width: 600px; }
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        
+        .avatar-picker { 
+            position: relative; 
+            width: 100px; 
+            height: 100px; 
+            margin: 0 auto 24px; 
+            cursor: pointer; 
+        }
+        .avatar-picker img { 
+            width: 100%; 
+            height: 100%; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 2px solid var(--accent-blue); 
+            box-shadow: 0 10px 25px rgba(0, 102, 255, 0.15);
+        }
+        .avatar-picker input { display: none; }
+        .avatar-overlay { 
+            position: absolute; 
+            bottom: 2px; 
+            right: 2px; 
+            background: var(--accent-blue); 
+            padding: 7px; 
+            border-radius: 50%; 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            border: 2px solid #0d1221;
+        }
+        
+        input[type="text"] { 
+            width: 100%; 
+            padding: 14px 18px; 
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 14px; 
+            color: white; 
+            font-size: 15px; 
+            margin-bottom: 20px; 
+            outline: none; 
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus {
+            border-color: var(--accent-blue);
+            background: rgba(0, 102, 255, 0.02);
+            box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.15);
+        }
+        
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            background: var(--accent-blue); 
+            border: none; 
+            border-radius: 14px; 
+            color: white; 
+            font-size: 15px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        button:hover { 
+            background: var(--accent-hover); 
+            transform: translateY(-1px);
+        }
+        
+        #app-screen { display: none; }
 
-        /* معرض الشخصيات والماب الافتراضي */
-        .content-container {
-            max-width: 1100px; margin: 0 auto; padding: 40px 20px;
+        /* مظهر لوحة الكود الشخصي */
+        .my-code-panel {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        .my-code-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .my-code-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            letter-spacing: 3px;
+            direction: ltr;
         }
 
-        .section-title {
-            font-size: 24px; color: var(--neon-purple); margin-bottom: 30px;
-            border-right: 4px solid var(--neon-cyan); padding-right: 15px;
+        /* حقل إدخال الكود المستهدف */
+        #target-code-input {
+            direction: ltr;
+            text-align: center;
         }
 
-        .grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;
+        /* كارت إظهار تفاصيل الصديق بعد البحث */
+        .partner-found-card {
+            display: none;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 15px;
+            align-items: center;
+            justify-content: space-between;
+            text-align: right;
+            animation: slideUpFade 0.3s ease;
+        }
+        .partner-found-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .partner-found-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--accent-blue);
+        }
+        .partner-found-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-mini {
+            width: auto;
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 8px;
+        }
+        .btn-mini-cancel {
+            background: #1f2937;
         }
 
-        .card {
-            background: var(--panel-bg); border: 1px solid rgba(255, 255, 255, 0.03);
-            border-radius: 12px; padding: 25px; transition: all 0.3s ease;
-            position: relative; overflow: hidden;
+        /* فاصل خطي */
+        .divider {
+            position: relative;
+            margin: 24px 0;
+            text-align: center;
+        }
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 1;
+        }
+        .divider span {
+            position: relative;
+            background: #0b0f19;
+            padding: 0 15px;
+            font-size: 12px;
+            color: var(--text-muted);
+            z-index: 2;
         }
 
-        .card:hover {
-            transform: translateY(-5px); border-color: var(--neon-cyan);
-            box-shadow: 0 10px 20px rgba(6, 182, 212, 0.05);
+        /* صندوق الدعم والتبرعات الاحترافي */
+        .support-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 20px;
+            padding: 18px;
+            margin-top: 25px;
+            text-align: center;
+        }
+        .support-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .support-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+        .presets-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .btn-preset {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: auto;
+            transition: all 0.2s ease;
+        }
+        .btn-preset:hover, .btn-preset.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+            transform: none;
         }
 
-        .card h3 { margin-top: 0; color: #fff; }
-        .card p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
-
-        /* مشغل الصوتيات التجريبي ف السيت */
-        .audio-player {
-            background: rgba(139, 92, 246, 0.1); border: 1px solid var(--neon-purple);
-            border-radius: 8px; padding: 15px; display: flex; align-items: center;
-            justify-content: space-between; margin-top: 20px;
+        /* تصميم حقل التبرع الحر */
+        .custom-donation-wrapper {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 4px 12px;
+            transition: all 0.3s ease;
+        }
+        .custom-donation-wrapper:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15);
+        }
+        .custom-donation-wrapper input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            width: 100%;
+            text-align: right;
+            padding: 6px;
+            margin-bottom: 0 !important;
+        }
+        .custom-donation-wrapper span {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 700;
+            padding-right: 4px;
         }
 
-        .play-btn {
-            background: var(--neon-cyan); border: none; padding: 8px 20px;
-            border-radius: 6px; color: #000; font-weight: bold; cursor: pointer;
+        /* شاشة السينما والمكالمة */
+        #call-screen { 
+            display: none; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #030408; z-index: 100; flex-direction: column; 
+            align-items: center; justify-content: space-between; padding: 25px 20px;
         }
 
-        /* أنيميشن خفيفة */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        /* شاشة الرنين */
+        .calling-state-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
         }
 
-        @media (max-width: 768px) {
-            .game-title { font-size: 32px; }
-            header { padding: 20px; }
+        .avatar-ring {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+        }
+        .avatar-ring img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent-blue);
+            z-index: 10;
+            position: relative;
+        }
+        .avatar-ring::before, .avatar-ring::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            opacity: 0.3;
+            z-index: 1;
+            animation: pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        .avatar-ring::after {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes pulseRing {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+        
+        /* غرفة السينما */
+        .cinema-room {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            height: 75%;
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+        }
+
+        #video-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        #player {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-selector {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            padding: 14px;
+            background: #080c14;
+            position: relative;
+            z-index: 30;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .video-selector input {
+            flex: 1;
+            padding: 12px 16px;
+            background: #03050a;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            color: white;
+            font-size: 13px;
+            margin-bottom: 0;
+            text-align: right;
+            direction: ltr;
+        }
+        .video-selector button {
+            width: auto;
+            padding: 12px 20px;
+            font-size: 13px;
+            border-radius: 10px;
+        }
+
+        /* أزرار التحكم */
+        .controls { 
+            display: flex; 
+            gap: 20px; 
+            justify-content: center; 
+            width: 100%; 
+            margin-top: 20px; 
+            z-index: 40;
+        }
+        .btn-control { 
+            width: 56px; 
+            height: 56px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border: none; 
+            cursor: pointer; 
+            color: white;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .btn-control:hover { transform: scale(1.08); }
+        .btn-control:active { transform: scale(0.95); }
+        .btn-mute { background: #1f2937; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .btn-mute.active { background: var(--danger-red); }
+        .btn-hangup { background: var(--danger-red); }
+        .btn-hangup:hover { background: var(--danger-hover); }
+        .btn-accept { 
+            background: var(--success-green); 
+            gap: 10px; 
+            border-radius: 30px; 
+            width: auto; 
+            padding: 0 24px; 
+            font-weight: 600; 
+            font-size: 14px; 
+        }
+
+        /* حقوق تصميم Optima Code */
+        .optima-footer {
+            margin-top: 25px;
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            letter-spacing: 0.5px;
+        }
+        .optima-brand {
+            color: var(--accent-blue);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 480px) {
+            .cinema-room { height: 75%; }
+            #call-screen { padding: 20px 15px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="ambient-bg"></div>
+    <div id="toast-container" class="toast-container"></div>
 
-    <header>
-        <div class="logo">OPTIMA CODE</div>
-        <div style="font-size: 13px; color: var(--neon-purple);">DEV LOG // V1.0</div>
-    </header>
-
-    <div class="hero">
-        <h1 class="game-title">PROJECT: VOID MIND</h1>
-        <p class="tagline">لعبة تفاعلية 2D بنمط بيكسل آرت وقصة نفسية عميقة. استكشف ذكريات مفقودة وتجاوز عقبات العقل الباطن وسط مابات مرسومة بعناية.</p>
-    </div>
-
-    <div class="content-container">
-        <h2 class="section-title">ملفات تطوير المشروع</h2>
-        
-        <div class="grid">
-            <!-- الكارت 1: تصميم الشخصيات -->
-            <div class="card">
-                <h3>🎭 تصميم الشخصيات (Concept Art)</h3>
-                <p>مرحلة رسم وتصميم الأبطال والكيانات داخل اللعبة. نركز على طابع غامض يعبر عن الحالة النفسية لكل شخصية، مع تجهيز الأصول لعرضها لاحقاً كـ Time-lapse أونلاين.</p>
-            </div>
-
-            <!-- الكارت 2: عوالم اللعبة -->
-            <div class="card">
-                <h3>🗺️ المابات والبيئة (Parallax Mapping)</h3>
-                <p>بناء بيئات 2D تفاعلية ومستقرة زيرو قلتشات، بالاعتماد على طبقات متعددة لتعطي عمقاً بصرياً (Parallax Effect) يخلي التجربة غامرة ومثيرة للاهتمام.</p>
-            </div>
-
-            <!-- الكارت 3: الموسيقى التصويرية -->
-            <div class="card">
-                <h3>🎵 الأجواء والموسيقى (Soundtrack)</h3>
-                <p>دمج أنغام وموسيقى تصويرية غامضة (Dark Alternative) تتماشى مع أحداث اللعبة النفسية وتزيد من حماس وتركيز اللاعب أثناء الاستكشاف.</p>
-                
-                <div class="audio-player">
-                    <span id="track-status" style="font-size: 12px; color: #cbd5e1;">المشغل الافتراضي جاهز</span>
-                    <button class="play-btn" onclick="toggleAudio()">تشغيل</button>
+    <div class="container" id="main-container">
+        <!-- 1. شاشة الدخول -->
+        <div id="login-screen">
+            <h1>انضم إلى MyHouse Cinema</h1>
+            <p class="subtitle">تواصل بالصوت وشاهد فيديوهات يوتيوب بالتزامن</p>
+            <div class="avatar-picker" onclick="document.getElementById('file-input').click()">
+                <img id="avatar-preview" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" alt="Avatar">
+                <div class="avatar-overlay">
+                    <i data-lucide="camera"></i>
                 </div>
+                <input type="file" id="file-input" accept="image/*">
+            </div>
+            <input type="text" id="username" placeholder="اكتب اسمك المستعار..." autocomplete="off" maxlength="15">
+            <button id="btn-join">
+                <i data-lucide="log-in"></i>
+                دخول الآن
+            </button>
+            
+            <!-- صندوق التبرع المدمج بحسابك بايبال -->
+            <div class="support-card">
+                <div class="support-title">
+                    <i data-lucide="heart" style="color: var(--danger-red); fill: var(--danger-red); width: 16px; height: 16px;"></i>
+                    <span>ادعم مطوري Optima Code</span>
+                </div>
+                <div class="support-desc">تبرعك يساهم في تغطية تكاليف الاستضافة وتطوير مشاريعنا المجانية والمفتوحة المصدر.</div>
+                
+                <div class="presets-container">
+                    <button class="btn-preset active" data-val="3.00">$3</button>
+                    <button class="btn-preset" data-val="5.00">$5</button>
+                    <button class="btn-preset" data-val="10.00">$10</button>
+                    <button class="btn-preset" id="btn-custom-toggle" data-val="custom">مبلغ آخر</button>
+                </div>
+
+                <!-- حقل إدخال مبلغ مخصص (يظهر عند الضغط على مبلغ آخر) -->
+                <div class="custom-donation-wrapper" id="custom-donation-box" style="display: none;">
+                    <input type="text" id="custom-amount-input" placeholder="اكتب المبلغ اللي يناسبك..." maxlength="6">
+                    <span>USD $</span>
+                </div>
+
+                <!-- الحاوية التي تظهر فيها أزرار بايبال مباشرة -->
+                <div id="paypal-button-container"></div>
+            </div>
+
+            <!-- حقوق Optima Code المضافة -->
+            <div class="optima-footer">
+                <span>الموقع مصمم من طرف</span>
+                <span class="optima-brand">Optima Code</span>
+            </div>
+        </div>
+
+        <!-- 2. شاشة البحث والاتصال بالكود -->
+        <div id="app-screen">
+            <h1>غرفتك الخاصة 🔑</h1>
+            <p class="subtitle" style="margin-bottom: 20px;">شارك كود غرفتك للاتصال السريع</p>
+            
+            <div class="my-code-panel">
+                <div class="my-code-title">رمز الاتصال الخاص بك</div>
+                <div class="my-code-value" id="my-6digit-code">------</div>
+            </div>
+
+            <div class="divider">
+                <span>تواصل مع صديق</span>
+            </div>
+
+            <input type="text" id="target-code-input" placeholder="000 000" maxlength="7" autocomplete="off" style="font-size: 22px; font-weight: 700; letter-spacing: 2px;">
+            <button id="btn-search-by-code">
+                <i data-lucide="search"></i>
+                بحث عن الرمز
+            </button>
+
+            <!-- كارت الطرف التاني المكتشف -->
+            <div class="partner-found-card" id="partner-found-card">
+                <div class="partner-found-info">
+                    <img class="partner-found-avatar" id="found-avatar" src="" alt="">
+                    <div>
+                        <div id="found-name" style="font-weight: 600; font-size: 14px;">اسم الصديق</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">متصل الآن ومستعد</div>
+                    </div>
+                </div>
+                <div class="partner-found-buttons">
+                    <button class="btn-mini btn-mini-cancel" id="btn-cancel-search">إلغاء</button>
+                    <button class="btn-mini" id="btn-start-actual-call" style="background: var(--success-green);">اتصال</button>
+                </div>
+            </div>
+
+            <!-- حقوق التصميم في الشاشة الثانية أيضاً -->
+            <div class="optima-footer" style="margin-top: 35px;">
+                <span>الموقع مصمم من طرف</span>
+                <span class="optima-brand">Optima Code</span>
             </div>
         </div>
     </div>
 
-    <!-- كود الجافاسكريبت البسيط والمستقر -->
-    <script>
-        let isPlaying = false;
-        // صوت خفيف ومستقر كمثال (خالٍ من أي مشاكل)
-        const audio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'); 
+    <!-- 3. شاشة المكالمة والسينما -->
+    <div id="call-screen">
+        <!-- شاشة الرنين -->
+        <div class="calling-state-container" id="calling-state-view">
+            <div class="avatar-ring">
+                <img id="partner-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" alt="">
+            </div>
+            <h3 id="call-user-name" style="font-weight: 600; font-size: 22px; margin-bottom: 8px;">اسم الطرف الآخر</h3>
+            <p id="call-status-text" style="color: var(--text-secondary); font-size: 14px;">جاري إنشاء الاتصال الآمن...</p>
+        </div>
+
+        <!-- غرفة السينما المشتركة -->
+        <div class="cinema-room" id="cinema-room">
+            <div id="video-container">
+                <div id="player"></div>
+            </div>
+
+            <div class="video-selector">
+                <input type="text" id="video-url" placeholder="ألصق رابط فيديو يوتيوب هنا...">
+                <button id="btn-load-video">شغّل</button>
+            </div>
+        </div>
         
-        function toggleAudio() {
-            const status = document.getElementById('track-status');
-            const btn = document.querySelector('.play-btn');
+        <div class="controls">
+            <button id="btn-mute" class="btn-control btn-mute">
+                <i data-lucide="mic"></i>
+            </button>
+            <button id="btn-accept" class="btn-control btn-accept" style="display: none;">
+                <i data-lucide="phone"></i>
+                قبول الاتصال
+            </button>
+            <button id="btn-hangup" class="btn-control btn-hangup">
+                <i data-lucide="phone-off"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- عنصر الصوت المباشر -->
+    <audio id="remote-audio" autoplay playsinline></audio>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, onDisconnect, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        // إعدادات الـ Firebase
+        const firebaseConfig = { databaseURL: "https://my-house-672f0-default-rtdb.firebaseio.com/" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let myId, myName, myAvatar = "https://api.dicebear.com/7.x/bottts/svg?seed=default";
+        let my6DigitCode = "";
+        let peer, localStream, currentCall, partnerId = null;
+        let ytPlayer = null;
+        
+        let ignoreNextStateChange = false; 
+        let lastActionSent = null;
+
+        let searchedPartner = null; 
+        let callRejectedListener = null;
+
+        // متغير لتحديد قيمة التبرع الافتراضية
+        let donationAmount = "3.00"; 
+
+        lucide.createIcons();
+
+        // دالة حماية وتطهير النصوص لمنع هجمات XSS
+        function sanitizeInput(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, function(m) {
+                switch (m) {
+                    case '&': return '&amp;';
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '"': return '&quot;';
+                    case "'": return '&#x27;';
+                    default: return m;
+                }
+            }).trim();
+        }
+
+        // حظر Inspect Element وأدوات المطورين وكليك يمين
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123) return false; // منع F12
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; 
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; 
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; 
+            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
+        };
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
             
-            if(!isPlaying) {
-                audio.play().then(() => {
-                    isPlaying = true;
-                    status.innerText = "جاري تشغيل الموسيقى المرافقة...";
-                    btn.innerText = "إيقاف";
-                    btn.style.background = "#e43f5a";
-                }).catch(e => console.log("تحتاج للتفاعل مع الشاشة أولاً"));
+            let iconName = 'info';
+            if (type === 'success') iconName = 'check-circle';
+            if (type === 'danger') iconName = 'alert-triangle';
+
+            const cleanMessage = sanitizeInput(message);
+
+            toast.innerHTML = `
+                <i data-lucide="${iconName}" style="color: ${type === 'danger' ? 'var(--danger-red)' : type === 'success' ? 'var(--success-green)' : 'var(--accent-blue)'}"></i>
+                <span>${cleanMessage}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.style.animation = 'slideUpFade 0.3s reverse forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // تفعيل نظام اختيار مبالغ التبرع ديناميكياً
+        const presetButtons = document.querySelectorAll('.btn-preset');
+        const customDonationBox = document.getElementById('custom-donation-box');
+        const customAmountInput = document.getElementById('custom-amount-input');
+
+        presetButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                presetButtons.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                const val = e.target.getAttribute('data-val');
+                if (val === 'custom') {
+                    // إظهار حقل الإدخال المخصص
+                    customDonationBox.style.display = 'flex';
+                    customAmountInput.focus();
+                    // استخدام القيمة المكتوبة حالياً في المدخل أو تعيين 1.00 كقيمة دنيا مؤقتة
+                    const inputVal = parseFloat(customAmountInput.value);
+                    donationAmount = (!isNaN(inputVal) && inputVal > 0) ? inputVal.toFixed(2) : "1.00";
+                } else {
+                    // إخفاء حقل الإدخال وتعيين المبلغ الثابت
+                    customDonationBox.style.display = 'none';
+                    donationAmount = val;
+                    showToast(`تم تحديد مبلغ التبرع: $${donationAmount}`, "info");
+                }
+            });
+        });
+
+        // مراقبة كتابة المبلغ وتطهيره من المدخلات الخاطئة
+        customAmountInput.addEventListener('input', (e) => {
+            // السماح فقط بالأرقام ونقطة عشرية واحدة
+            let val = e.target.value.replace(/[^0-9.]/g, '');
+            const parts = val.split('.');
+            if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+            e.target.value = val;
+
+            const parsedVal = parseFloat(val);
+            if (!isNaN(parsedVal) && parsedVal > 0) {
+                donationAmount = parsedVal.toFixed(2);
             } else {
-                audio.pause();
-                isPlaying = false;
-                status.innerText = "تم إيقاف الموسيقى";
-                btn.innerText = "تشغيل";
-                btn.style.background = "var(--neon-cyan)";
+                donationAmount = "1.00"; // القيمة الافتراضية في حال المسح أو الإدخال الخاطئ
+            }
+        });
+
+        // رندر أزرار بايبال الذكية
+        paypal.Buttons({
+            style: {
+                layout: 'vertical',
+                color:  'gold',
+                shape:  'rect',
+                label:  'paypal',
+                height: 40
+            },
+            createOrder: function(data, actions) {
+                // التحقق من صلاحية المبلغ قبل المتابعة للتأمين
+                const finalAmount = parseFloat(donationAmount);
+                if (isNaN(finalAmount) || finalAmount <= 0) {
+                    showToast("يرجى إدخال مبلغ تبرع صالح أكبر من 0!", "danger");
+                    return;
+                }
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: donationAmount // القيمة الديناميكية المحددة
+                        },
+                        description: "Support Optima Code Development"
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    showToast(`شكراً جزيلاً لدعمك Optima Code! تم التبرع بنجاح من طرف: ${details.payer.name.given_name}`, "success");
+                });
+            },
+            onError: function(err) {
+                console.error('PayPal Error:', err);
+                showToast("حدث خطأ أثناء الدفع، المرجو المحاولة مجدداً.", "danger");
+            }
+        }).render('#paypal-button-container');
+
+        function generate6DigitCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // تنسيق مدخلات الكود وقبول الأرقام فقط لمنع الإدخال الخاطئ
+        document.getElementById('target-code-input').addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 3) {
+                val = val.slice(0, 3) + ' ' + val.slice(3, 6);
+            }
+            e.target.value = val;
+        });
+
+        function loadYoutubeAPI() {
+            if (!window.YT) {
+                const tag = document.createElement('script');
+                tag.src = "https://www.youtube.com/iframe_api";
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            } else {
+                onYouTubeIframeAPIReady();
             }
         }
+
+        window.onYouTubeIframeAPIReady = function() {
+            ytPlayer = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: '5qap5aO4i9A',
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 1,
+                    'rel': 0,
+                    'playsinline': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        };
+
+        function onPlayerReady(event) {
+            ytPlayer.unMute();
+            ytPlayer.setVolume(80);
+        }
+
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 1024 * 1024) {
+                    showToast("حجم الصورة يجب أن يكون أقل من 1 ميجابايت!", "danger");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    myAvatar = event.target.result;
+                    document.getElementById('avatar-preview').src = myAvatar;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('btn-join').addEventListener('click', async () => {
+            myName = sanitizeInput(document.getElementById('username').value);
+            if(!myName || myName.length < 2) return showToast("الرجاء كتابة اسم مستعار صالح (حرفين على الأقل)!", "danger");
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                showToast("يجب السماح بالوصول للمايكروفون للاتصال بالصوت!", "danger");
+                return;
+            }
+
+            peer = new Peer({
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
+            });
+            
+            peer.on('open', async (id) => {
+                myId = id;
+                my6DigitCode = generate6DigitCode();
+
+                const userRef = ref(db, 'users/' + myId);
+                const codeRef = ref(db, 'codes/' + my6DigitCode);
+
+                await set(userRef, { name: myName, avatar: myAvatar, code: my6DigitCode });
+                await set(codeRef, { peerId: myId, name: myName, avatar: myAvatar });
+
+                onDisconnect(userRef).remove();
+                onDisconnect(codeRef).remove();
+
+                const formattedCode = my6DigitCode.slice(0, 3) + ' ' + my6DigitCode.slice(3, 6);
+                document.getElementById('my-6digit-code').innerText = formattedCode;
+
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-screen').style.display = 'block';
+                
+                loadYoutubeAPI();
+                listenForIncomingCalls();
+            });
+
+            peer.on('error', (err) => {
+                console.error("PeerJS Error:", err);
+                showToast("حدث خطأ في الاتصال بالسيرفر", "danger");
+            });
+        });
+
+        // مرحلة البحث عن الرمز
+        document.getElementById('btn-search-by-code').addEventListener('click', async () => {
+            const rawCode = document.getElementById('target-code-input').value.replace(/\s+/g, '');
+            if (!/^\d{6}$/.test(rawCode)) {
+                return showToast("الرجاء إدخال كود صحيح يتكون من 6 أرقام فقط!", "danger");
+            }
+
+            if (rawCode === my6DigitCode) {
+                return showToast("لا يمكنك الاتصال برمزك الشخصي!", "danger");
+            }
+
+            showToast("جاري البحث...", "info");
+
+            const codeSnapshot = await get(ref(db, 'codes/' + rawCode));
+            if (!codeSnapshot.exists()) {
+                document.getElementById('partner-found-card').style.display = 'none';
+                return showToast("لم يتم العثور على هذا الرمز!", "danger");
+            }
+
+            searchedPartner = codeSnapshot.val();
+            document.getElementById('found-avatar').src = searchedPartner.avatar;
+            document.getElementById('found-name').innerText = sanitizeInput(searchedPartner.name);
+            
+            document.getElementById('partner-found-card').style.display = 'flex';
+            showToast("تم العثور على الصديق بنجاح", "success");
+        });
+
+        document.getElementById('btn-cancel-search').addEventListener('click', () => {
+            document.getElementById('partner-found-card').style.display = 'none';
+            searchedPartner = null;
+        });
+
+        document.getElementById('btn-start-actual-call').addEventListener('click', () => {
+            if (!searchedPartner) return;
+            document.getElementById('partner-found-card').style.display = 'none';
+            startCall(searchedPartner.peerId, searchedPartner.name, searchedPartner.avatar);
+        });
+
+        function startCall(targetId, targetName, targetAvatar) {
+            partnerId = targetId;
+            document.getElementById('partner-avatar-img').src = targetAvatar || "https://api.dicebear.com/7.x/bottts/svg?seed=default";
+            document.getElementById('call-user-name').innerText = sanitizeInput(targetName);
+            document.getElementById('btn-accept').style.display = 'none';
+            document.getElementById('cinema-room').style.display = 'none';
+            document.getElementById('calling-state-view').style.display = 'flex';
+            document.getElementById('call-screen').style.display = 'flex';
+
+            document.getElementById('call-status-text').innerText = "جاري الاتصال الصوتي وصنع السينما...";
+
+            const remoteAudio = document.getElementById('remote-audio');
+            remoteAudio.play().catch(() => {});
+
+            currentCall = peer.call(targetId, localStream);
+            handleCallStreams(currentCall);
+
+            const rejectRef = ref(db, `calls/${myId}_${partnerId}/rejected`);
+            set(rejectRef, false);
+            
+            callRejectedListener = onValue(rejectRef, (snapshot) => {
+                if (snapshot.exists() && snapshot.val() === true) {
+                    showToast("رفض الطرف الآخر الاتصال", "danger");
+                    if(currentCall) currentCall.close();
+                    endCallInterface();
+                }
+            });
+
+            setupCinemaSync();
+        }
+
+        function listenForIncomingCalls() {
+            peer.on('call', (incomingCall) => {
+                currentCall = incomingCall;
+                partnerId = incomingCall.peer;
+                
+                onValue(ref(db, 'users/' + partnerId), (snapshot) => {
+                    const caller = snapshot.val();
+                    if (caller) {
+                        document.getElementById('partner-avatar-img').src = caller.avatar;
+                        document.getElementById('call-user-name').innerText = sanitizeInput(caller.name);
+                        showToast(`مكالمة واردة من ${caller.name}`, "success");
+                    }
+                }, { onlyOnce: true });
+
+                document.getElementById('call-status-text').innerText = "مكالمة واردة...";
+                document.getElementById('btn-accept').style.display = 'inline-flex';
+                document.getElementById('cinema-room').style.display = 'none';
+                document.getElementById('calling-state-view').style.display = 'flex';
+                document.getElementById('call-screen').style.display = 'flex';
+
+                document.getElementById('btn-accept').onclick = () => {
+                    const remoteAudio = document.getElementById('remote-audio');
+                    remoteAudio.play().catch(() => {});
+
+                    currentCall.answer(localStream);
+                    document.getElementById('btn-accept').style.display = 'none';
+                    handleCallStreams(currentCall);
+                    setupCinemaSync();
+                };
+            });
+        }
+
+        document.getElementById('btn-load-video').addEventListener('click', () => {
+            const urlInput = sanitizeInput(document.getElementById('video-url').value);
+            const videoId = extractYouTubeId(urlInput);
+            if (videoId && partnerId) {
+                const videoData = { videoId: videoId, action: 'load', time: 0, timestamp: Date.now() };
+                set(ref(db, `calls/${myId}_${partnerId}/videoState`), videoData);
+                set(ref(db, `calls/${partnerId}_${myId}/videoState`), videoData);
+            } else {
+                showToast("رابط يوتيوب غير صحيح!", "danger");
+            }
+        });
+
+        function extractYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function onPlayerStateChange(event) {
+            if (ignoreNextStateChange) return;
+
+            let action = '';
+            if (event.data === YT.PlayerState.PLAYING) action = 'play';
+            if (event.data === YT.PlayerState.PAUSED) action = 'pause';
+
+            if (action !== '' && action !== lastActionSent) {
+                lastActionSent = action;
+                const videoState = {
+                    action: action,
+                    time: ytPlayer.getCurrentTime(),
+                    timestamp: Date.now()
+                };
+                if (partnerId) {
+                    update(ref(db, `calls/${myId}_${partnerId}/videoState`), videoState);
+                    update(ref(db, `calls/${partnerId}_${myId}/videoState`), videoState);
+                }
+            }
+        }
+
+        function setupCinemaSync() {
+            const listenSync = (callKey) => {
+                onValue(ref(db, `calls/${callKey}/videoState`), (snapshot) => {
+                    if (!snapshot.exists() || !ytPlayer) return;
+                    const data = snapshot.val();
+                    
+                    ignoreNextStateChange = true;
+
+                    if (data.action === 'load') {
+                        const safeVideoId = sanitizeInput(data.videoId);
+                        ytPlayer.loadVideoById(safeVideoId, 0);
+                        setTimeout(() => { ignoreNextStateChange = false; }, 1000);
+                        return;
+                    }
+
+                    const localTime = ytPlayer.getCurrentTime();
+                    const diff = Math.abs(localTime - data.time);
+
+                    if (data.action === 'play') {
+                        if (diff > 1.5) {
+                            ytPlayer.seekTo(data.time, true);
+                        }
+                        ytPlayer.playVideo();
+                    } else if (data.action === 'pause') {
+                        ytPlayer.pauseVideo();
+                        if (diff > 1.5) {
+                            ytPlayer.seekTo(data.time, true);
+                        }
+                    }
+
+                    setTimeout(() => {
+                        ignoreNextStateChange = false;
+                    }, 500);
+                });
+            };
+
+            listenSync(`${myId}_${partnerId}`);
+            listenSync(`${partnerId}_${myId}`);
+        }
+
+        function handleCallStreams(call) {
+            call.on('stream', (remoteStream) => {
+                showToast("تم الاتصال بنجاح!", "success");
+
+                document.getElementById('calling-state-view').style.display = 'none';
+                document.getElementById('cinema-room').style.display = 'flex';
+
+                const remoteAudio = document.getElementById('remote-audio');
+                remoteAudio.srcObject = remoteStream;
+                remoteAudio.play().catch(e => {
+                    console.log("Audio play deferred to user click.", e);
+                });
+            });
+
+            call.on('close', () => {
+                showToast("انتهت المكالمة", "danger");
+                endCallInterface();
+            });
+        }
+
+        document.getElementById('btn-hangup').addEventListener('click', async () => {
+            if (partnerId) {
+                await set(ref(db, `calls/${partnerId}_${myId}/rejected`), true);
+                remove(ref(db, `calls/${myId}_${partnerId}`));
+                remove(ref(db, `calls/${partnerId}_${myId}`));
+            }
+            if(currentCall) currentCall.close();
+            showToast("تم إنهاء الاتصال", "info");
+            endCallInterface();
+        });
+
+        function endCallInterface() {
+            if (callRejectedListener) {
+                callRejectedListener();
+                callRejectedListener = null;
+            }
+
+            document.getElementById('call-screen').style.display = 'none';
+            document.getElementById('cinema-room').style.display = 'none';
+            document.getElementById('calling-state-view').style.display = 'flex';
+            document.getElementById('remote-audio').srcObject = null;
+            if (ytPlayer) ytPlayer.stopVideo();
+            partnerId = null;
+            searchedPartner = null;
+        }
+
+        let isMuted = false;
+        document.getElementById('btn-mute').addEventListener('click', () => {
+            isMuted = !isMuted;
+            localStream.getAudioTracks()[0].enabled = !isMuted;
+            document.getElementById('btn-mute').classList.toggle('active', isMuted);
+            
+            const icon = document.querySelector('#btn-mute i');
+            if (isMuted) {
+                icon.setAttribute('data-lucide', 'mic-off');
+                showToast("تم كتم الصوت", "info");
+            } else {
+                icon.setAttribute('data-lucide', 'mic');
+                showToast("تم إلغاء كتم الصوت", "success");
+            }
+            lucide.createIcons();
+        });
     </script>
 </body>
 </html>
